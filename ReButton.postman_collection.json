@@ -128,6 +128,68 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "timeserver GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ssid\": \"DummySSID\",\r\n  \"password\": \"DummyPassword\"\r\n}"
+				},
+				"url": {
+					"raw": "http://192.168.0.1/config/timeserver",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"1"
+					],
+					"path": [
+						"config",
+						"timeserver"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "timeserver POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"timeserver\": \"DummyTimeServer\"\r\n}"
+				},
+				"url": {
+					"raw": "http://192.168.0.1/config/timeserver",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"1"
+					],
+					"path": [
+						"config",
+						"timeserver"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
