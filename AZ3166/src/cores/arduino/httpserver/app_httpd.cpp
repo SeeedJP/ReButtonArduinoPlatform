@@ -516,26 +516,32 @@ int rest_post_wifi(httpd_request_t *req)
   
   if (strstr(req->content_type, HTTP_CONTENT_JSON_STR) != NULL)
   {
-    //
-    // ToDo : Save SSID to EEPROM
-    //
     JSON_Value *root_value = NULL;
     root_value = json_parse_string(buf);
     JSON_Object *root_object;
 
     if (json_value_get_type(root_value) == JSONObject)
     {
-        root_object = json_value_get_object(root_value);
-        const char *strSSID = json_object_get_string(root_object, "ssid");
-        const char *strPASS = json_object_get_string(root_object, "password");
-        Serial.println(strSSID);
-        Serial.println(strPASS);
-        if(root_value)
-        {
-          json_value_free(root_value);
-        }
+      root_object = json_value_get_object(root_value);
+      const char *strSSID = json_object_get_string(root_object, "ssid");
+      const char *strPASS = json_object_get_string(root_object, "password");
+      
+      err = write_eeprom((char *)strSSID, WIFI_SSID_ZONE_IDX);
+      if (err != 0)
+      {
+        return false;
+      }
+      err = write_eeprom((char *)strPASS, WIFI_PWD_ZONE_IDX);
+      if (err != 0)
+      {
+        return false;
+      }
+
+      if(root_value)
+      {
+        json_value_free(root_value);
+      }
     }
-    
   }
 
 Save_Out:
@@ -603,13 +609,15 @@ int rest_post_timeserver(httpd_request_t *req)
 
     if (json_value_get_type(root_value) == JSONObject)
     {
-        root_object = json_value_get_object(root_value);
-        const char *strTimeServer = json_object_get_string(root_object, "timeserver");
-        Serial.println(strTimeServer);
-        if(root_value)
-        {
-          json_value_free(root_value);
-        }
+      root_object = json_value_get_object(root_value);
+      const char *strTimeServer = json_object_get_string(root_object, "timeserver");
+
+      Serial.println(strTimeServer);
+
+      if(root_value)
+      {
+        json_value_free(root_value);
+      }
     }
   }
 
@@ -635,26 +643,22 @@ int rest_post_shutdown(httpd_request_t *req)
   
   if (strstr(req->content_type, HTTP_CONTENT_JSON_STR) != NULL)
   {
-    //
-    // ToDo : Should convert to Int
-    //
     JSON_Value *root_value = NULL;
     root_value = json_parse_string(buf);
     JSON_Object *root_object;
 
     if (json_value_get_type(root_value) == JSONObject)
     {
-        root_object = json_value_get_object(root_value);
-        const char *strDelay = json_object_get_string(root_object, "shutdowndelay");
-        Serial.println(strDelay);
+      root_object = json_value_get_object(root_value);
+      double iDelay = json_object_get_number(root_object, "shutdowndelayinms");
 
-        //
-        // ToDo : Shutdown or reboot device
-        //
-        if(root_value)
-        {
-          json_value_free(root_value);
-        }
+      if(root_value)
+      {
+        json_value_free(root_value);
+      }
+
+      delay(iDelay);
+      mico_system_reboot();
     }
   }
 
