@@ -1,0 +1,133 @@
+{
+	"info": {
+		"_postman_id": "32f199ef-d19d-4cf5-b4b7-dd7aa8c7b548",
+		"name": "ReButton",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "iothub GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://192.168.0.1/config/iothub",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"1"
+					],
+					"path": [
+						"config",
+						"iothub"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "iothub POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"iothub\": \"DummyIoTHubName\",\n    \"devicename\": \"DummyIoTHubDeviceName\",\n    \"connectionstring\": \"DummyIoTConnectionString1234567890\"\n}"
+				},
+				"url": {
+					"raw": "http://192.168.0.1/config/iothub",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"1"
+					],
+					"path": [
+						"config",
+						"iothub"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "wifi POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ssid\": \"DummySSID\",\r\n  \"password\": \"DummyPassword\"\r\n}"
+				},
+				"url": {
+					"raw": "http://192.168.0.1/config/wifi",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"1"
+					],
+					"path": [
+						"config",
+						"wifi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "wifi GET",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ssid\": \"DummySSID\",\r\n  \"password\": \"DummyPassword\"\r\n}"
+				},
+				"url": {
+					"raw": "http://192.168.0.1/config/wifi",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"1"
+					],
+					"path": [
+						"config",
+						"wifi"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
