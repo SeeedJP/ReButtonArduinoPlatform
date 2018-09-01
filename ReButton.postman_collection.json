@@ -48,7 +48,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"iothub\": \"DummyIoTHubName\",\n    \"devicename\": \"DummyIoTHubDeviceName\",\n    \"connectionstring\": \"DummyIoTConnectionString1234567890\"\n}"
+					"raw": "{\n    \"connectionstring\": \"HostName=MyDummyIoTHub.azure-devices.net;DeviceId=SeeedReButton;SharedAccessKey=Qtk4eiHKDwFpeSCvTf8zX1UYb4iSA0l00CJuD7SS170=\"\n}"
 				},
 				"url": {
 					"raw": "http://192.168.0.1/config/iothub",
@@ -186,6 +186,37 @@
 					"path": [
 						"config",
 						"timeserver"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "shutdown POST",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"shutdowndelayinms\": 3000\r\n}"
+				},
+				"url": {
+					"raw": "http://192.168.0.1/device/shutdown",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"0",
+						"1"
+					],
+					"path": [
+						"device",
+						"shutdown"
 					]
 				}
 			},
