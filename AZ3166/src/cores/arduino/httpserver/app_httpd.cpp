@@ -391,23 +391,120 @@ exit:
 * REST API for IoT Hub
 */
 
+static char *GetHostNameFromConnectionString(char *connectionString)
+{
+    if (connectionString == NULL)
+    {
+        return NULL;
+    }
+    int start = 0;
+    int cur = 0;
+    bool find = false;
+    while (connectionString[cur] > 0)
+    {
+        if (connectionString[cur] == '=')
+        {
+            // Check the key
+            if (memcmp(&connectionString[start], "HostName", 8) == 0)
+            {
+                // This is the host name
+                find = true;
+            }
+            start = ++cur;
+            // Value
+            while (connectionString[cur] > 0)
+            {
+                if (connectionString[cur] == ';')
+                {
+                    break;
+                }
+                cur++;
+            }
+            if (find && cur - start > 0)
+            {
+                char *hostname = (char *)malloc(cur - start + 1);
+                memcpy(hostname, &connectionString[start], cur - start);
+                hostname[cur - start] = 0;
+                return hostname;
+            }
+            start = cur + 1;
+        }
+        cur++;
+    }
+    return NULL;
+}
+
+static char *GetDeviceNameFromConnectionString(char *connectionString)
+{
+    if (connectionString == NULL)
+    {
+        return NULL;
+    }
+    int start = 0;
+    int cur = 0;
+    bool find = false;
+    while (connectionString[cur] > 0)
+    {
+        if (connectionString[cur] == '=')
+        {
+            // Check the key
+            if (memcmp(&connectionString[start], "DeviceId", 8) == 0)
+            {
+                // This is the host name
+                find = true;
+            }
+            start = ++cur;
+            // Value
+            while (connectionString[cur] > 0)
+            {
+                if (connectionString[cur] == ';')
+                {
+                    break;
+                }
+                cur++;
+            }
+            if (find && cur - start > 0)
+            {
+                char *deviceName = (char *)malloc(cur - start + 1);
+                memcpy(deviceName, &connectionString[start], cur - start);
+                deviceName[cur - start] = 0;
+                return deviceName;
+            }
+            start = cur + 1;
+        }
+        cur++;
+    }
+    return NULL;
+}
+
 int rest_get_iothub(httpd_request_t *req)
 {
   Serial.println(__FUNCTION__);
+  EEPROMInterface eeprom;
   JSON_Value *root_value = json_value_init_object();
   JSON_Object *root_object = json_value_get_object(root_value);
   char *serialized_string = NULL;
-  //
-  // ToDo: Read IoT Hub data from
-  //
-  json_object_set_string(root_object, "iothub", "MyIoTHub");
-  json_object_set_string(root_object, "iotdevicename", "MyDeviceId");
-  json_object_set_string(root_object, "iotdevicesecret", "MyConnectionString");
+  char *connString[AZ_IOT_HUB_MAX_LEN + 1] = { '\0' };
+  int err = kNoErr;
+
+  int ret = eeprom.read((uint8_t*)connString, AZ_IOT_HUB_MAX_LEN, 0x00, AZ_IOT_HUB_ZONE_IDX);
+
+  if (ret < 0)
+  {
+      Serial.println("Unable to get the azure iot connection string from EEPROM. Please set the value in configuration mode.");
+      return kGeneralErr;
+  }
+
+  char *iothub_hostname = GetHostNameFromConnectionString((char *)connString);
+  char *iothub_deviceid = GetDeviceNameFromConnectionString((char *)connString);
+
+  json_object_set_string(root_object, "iothub", iothub_hostname);
+  json_object_set_string(root_object, "iotdevicename", iothub_deviceid);
+  json_object_set_string(root_object, "iotdevicesecret", (char *)connString);
   serialized_string = json_serialize_to_string_pretty(root_value);
   puts(serialized_string);
 
   int json_length = strlen(serialized_string);
-  int err = kNoErr;
     
   err = httpd_send_all_header(req, HTTP_RES_200, json_length, HTTP_CONTENT_JSON_STR);
   require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http headers.") );
@@ -421,12 +518,24 @@ exit:
     json_free_serialized_string(serialized_string);
     json_value_free(root_value);
   }
+
+  if (iothub_hostname)
+  {
+    free(iothub_hostname);
+  }
+
+  if (iothub_deviceid)
+  {
+    free(iothub_deviceid);
+  }
   return err;
 }
 
 int rest_post_iothub(httpd_request_t *req)
 {
   Serial.println(__FUNCTION__);
+
+  EEPROMInterface eeprom;
   OSStatus err = kNoErr;
   int buf_size = 512;
   char *buf;
@@ -445,12 +554,17 @@ int rest_post_iothub(httpd_request_t *req)
     if (json_value_get_type(root_value) == JSONObject)
     {
         root_object = json_value_get_object(root_value);
-        const char *strIoTHub = json_object_get_string(root_object, "iothub");
-        const char *strDeviceName = json_object_get_string(root_object, "devicename");
         const char *strConnString = json_object_get_string(root_object, "connectionstring");
-        Serial.println(strIoTHub);
-        Serial.println(strDeviceName);
+
+        err = write_eeprom((char *)strConnString, AZ_IOT_HUB_ZONE_IDX);
+
+        if (err != 0)
+        {
+          return false;
+        }
+
         Serial.println(strConnString);
+
         if(root_value)
         {
           json_value_free(root_value);
@@ -473,14 +587,32 @@ exit:
 int rest_get_wifi(httpd_request_t *req)
 {
   Serial.println(__FUNCTION__);
+
+  EEPROMInterface eeprom;
+  char ssid[WIFI_SSID_MAX_LEN + 1] = { 0 };
+  char pwd[WIFI_PWD_MAX_LEN + 1] = { 0 };
+
+  int ret = eeprom.read((uint8_t*)ssid, WIFI_SSID_MAX_LEN, 0x00, WIFI_SSID_ZONE_IDX);
+
+  if (ret < 0)
+  {
+      Serial.print("ERROR: Failed to get the Wi-Fi SSID from EEPROM.\r\n");
+      return false;
+  }
+
+  ret = eeprom.read((uint8_t*)pwd, WIFI_PWD_MAX_LEN, 0x00, WIFI_PWD_ZONE_IDX);
+  if (ret < 0)
+  {
+      Serial.print("ERROR: Failed to get the Wi-Fi password from EEPROM.\r\n");
+      return false;
+  }
+
   JSON_Value *root_value = json_value_init_object();
   JSON_Object *root_object = json_value_get_object(root_value);
   char *serialized_string = NULL;
-  //
-  // ToDo: Read IoT Hub data from
-  //
-  json_object_set_string(root_object, "ssid", "myssid");
-  json_object_set_string(root_object, "password", "myssidpassword");
+
+  json_object_set_string(root_object, "ssid", ssid);
+  json_object_set_string(root_object, "password", pwd);
   serialized_string = json_serialize_to_string_pretty(root_value);
   puts(serialized_string);
 
@@ -746,3 +878,4 @@ int app_httpd_stop()
 exit:
   return err;
 }
+
