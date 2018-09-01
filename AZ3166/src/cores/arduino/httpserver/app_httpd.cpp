@@ -336,32 +336,13 @@ exit:
   return err;
 }
 
-static const char *JSON_TEMPLATE = 
-"{"
-  "\"data\":{"
-    "\"data1\":\"%s\""
-  "}"
-"}";
-
+//
+// Placeholder to get/set everything at once.
+//
 int rest_get_config(httpd_request_t *req)
 {
   Serial.println(__FUNCTION__);
-  int json_length = strlen(JSON_TEMPLATE) + strlen(__FUNCTION__);
-  char* data = new char[json_length];
   int err = kNoErr;
-    
-  sprintf(data, JSON_TEMPLATE, __FUNCTION__);
-  err = httpd_send_all_header(req, HTTP_RES_200, json_length, HTTP_CONTENT_JSON_STR);
-  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http wifisetting headers.") );
-
-  err = httpd_send_body(req->sock, (const unsigned char*)data, json_length);
-  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http wifisetting body.") );
-
-exit:
-  if (data)
-  {
-    delete [] data;
-  }
   return err;
 }
 
@@ -369,28 +350,12 @@ int rest_post_config(httpd_request_t *req)
 {
   Serial.println(__FUNCTION__);
   OSStatus err = kNoErr;
-  int buf_size = 512;
-  char *buf;
-
-  buf = (char *)malloc(buf_size);
-  err = httpd_get_data(req, buf, buf_size);
-  app_httpd_log("httpd_get_data return value: %d", err);
-  require_noerr( err, Save_Out );
-  
-  Serial.println(req->content_type);
-Save_Out:
-
-  err = web_send_result(req, false, req->content_type);
-  require_noerr_action(err, exit, app_httpd_log("ERROR: Unable to send http failed result"));
-
-exit:
   return err;  
 }
 
 /*
 * REST API for IoT Hub
 */
-
 static char *GetHostNameFromConnectionString(char *connectionString)
 {
     if (connectionString == NULL)
@@ -450,7 +415,7 @@ static char *GetDeviceNameFromConnectionString(char *connectionString)
             // Check the key
             if (memcmp(&connectionString[start], "DeviceId", 8) == 0)
             {
-                // This is the host name
+                // This is the device id
                 find = true;
             }
             start = ++cur;
