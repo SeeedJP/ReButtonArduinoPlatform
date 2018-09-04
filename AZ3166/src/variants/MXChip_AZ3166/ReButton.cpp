@@ -11,12 +11,14 @@ private:
 	PwmOut _LedBlue;
 	DigitalIn _Button;
 	FlashStorage _Storage;
+	AnalogIn _PowerSupplyVolt;
 
 public:
 	ReButtonImplement() : _PowerSupply(PWR_ENABLE),
 		_LedRed(LED_RED), _LedGreen(LED_GREEN), _LedBlue(LED_BLUE),
 		_Button(USER_BUTTON_A),
-		_Storage(FLASH_SECTOR_11, 0x080E0000, 128 * 1024)
+		_Storage(FLASH_SECTOR_11, 0x080E0000, 128 * 1024),
+		_PowerSupplyVolt(PB_0)
 	{
 		_PowerSupply.write(1);	// Power ON.
 
@@ -36,6 +38,11 @@ public:
 	void PowerSupplyEnable(bool enable)
 	{
 		digitalWrite(PWR_ENABLE, enable ? HIGH : LOW);
+	}
+
+	float ReadPowerSupplyVoltage()
+	{
+		return _PowerSupplyVolt.read() * 3.3f;
 	}
 
 	void SetLed(float red, float green, float blue)
@@ -102,4 +109,9 @@ void ReButton::ReadConfig(void* data, int dataSize)
 void ReButton::WriteConfig(void* data, int dataSize)
 {
 	GetInstance()->WriteConfig(data, dataSize);
+}
+
+float ReButton::ReadPowerSupplyVoltage()
+{
+	return GetInstance()->ReadPowerSupplyVoltage();
 }
