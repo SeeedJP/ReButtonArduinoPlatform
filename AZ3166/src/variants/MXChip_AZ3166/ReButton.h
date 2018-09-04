@@ -11,5 +11,9 @@ public:
 	static void PowerSupplyEnable(bool enable);
 	static void SetLed(float red, float green, float blue);
 	static bool IsButtonPressed();
+	static void EraseConfig();
+	static void ReadConfig(void* data, int dataSize);
+	static void WriteConfig(void* data, int dataSize);
+
 
 };

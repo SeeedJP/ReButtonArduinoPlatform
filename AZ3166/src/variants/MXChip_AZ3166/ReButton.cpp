@@ -1,5 +1,6 @@
-#include "ReButton.h"
 #include "Arduino.h"
+#include "ReButton.h"
+#include "FlashStorage.h"
 
 class ReButtonImplement
 {
@@ -9,11 +10,13 @@ private:
 	PwmOut _LedGreen;
 	PwmOut _LedBlue;
 	DigitalIn _Button;
+	FlashStorage _Storage;
 
 public:
-	ReButtonImplement() : _PowerSupply(PWR_ENABLE), 
+	ReButtonImplement() : _PowerSupply(PWR_ENABLE),
 		_LedRed(LED_RED), _LedGreen(LED_GREEN), _LedBlue(LED_BLUE),
-		_Button(USER_BUTTON_A)
+		_Button(USER_BUTTON_A),
+		_Storage(FLASH_SECTOR_11, 0x080E0000, 128 * 1024)
 	{
 		_PowerSupply.write(1);	// Power ON.
 
@@ -47,6 +50,22 @@ public:
 		return _Button.read() ? false : true;
 	}
 
+	void EraseConfig()
+	{
+		_Storage.Erase();
+	}
+
+	void ReadConfig(void* data, int dataSize)
+	{
+		const uint8_t* flash = _Storage;
+		memcpy(data, flash, dataSize);
+	}
+
+	void WriteConfig(void* data, int dataSize)
+	{
+		_Storage.Write((const uint8_t*)data, dataSize);
+	}
+
 };
 
 ReButtonImplement* ReButton::GetInstance()
@@ -68,4 +87,19 @@ void ReButton::SetLed(float red, float green, float blue)
 bool ReButton::IsButtonPressed()
 {
 	return GetInstance()->IsButtonPressed();
+}
+
+void ReButton::EraseConfig()
+{
+	GetInstance()->EraseConfig();
+}
+
+void ReButton::ReadConfig(void* data, int dataSize)
+{
+	GetInstance()->ReadConfig(data, dataSize);
+}
+
+void ReButton::WriteConfig(void* data, int dataSize)
+{
+	GetInstance()->WriteConfig(data, dataSize);
 }
