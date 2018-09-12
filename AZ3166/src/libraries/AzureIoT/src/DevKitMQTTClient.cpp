@@ -33,6 +33,7 @@ static DEVICE_TWIN_CALLBACK _device_twin_callback = NULL;
 static DEVICE_METHOD_CALLBACK _device_method_callback = NULL;
 static REPORT_CONFIRMATION_CALLBACK _report_confirmation_callback = NULL;
 static bool enableDeviceTwin = false;
+static char IoTHubConnectionString[AZ_IOT_HUB_MAX_LEN + 1];
 
 static uint64_t iothub_check_ms;
 
@@ -58,7 +59,7 @@ static void CheckConnection()
             LogInfo(">>>Re-connect.");
             // Re-connect the IoT Hub
             DevKitMQTTClient_Close();
-            DevKitMQTTClient_Init(enableDeviceTwin);
+            DevKitMQTTClient_Init(NULL, enableDeviceTwin);
             resetClient = false;
         }
     }
@@ -442,8 +443,14 @@ void DevKitMQTTClient_Event_AddProp(EVENT_INSTANCE *message, const char *key, co
     Map_AddOrUpdate(propMap, key, value);
 }
 
-bool DevKitMQTTClient_Init(bool hasDeviceTwin, bool traceOn)
+bool DevKitMQTTClient_Init(const char* connString, bool hasDeviceTwin, bool traceOn)
 {
+	if (connString != NULL)
+	{
+		strncpy(IoTHubConnectionString, connString, AZ_IOT_HUB_MAX_LEN);
+		IoTHubConnectionString[AZ_IOT_HUB_MAX_LEN] = '\0';
+	}
+
     if (iotHubClientHandle != NULL)
     {
         return true;
@@ -472,25 +479,10 @@ bool DevKitMQTTClient_Init(bool hasDeviceTwin, bool traceOn)
             return false;
         }
 
-        // Load connection from EEPROM
-        EEPROMInterface eeprom;
-        uint8_t connString[AZ_IOT_HUB_MAX_LEN + 1] = {'\0'};
-        int ret = eeprom.read(connString, AZ_IOT_HUB_MAX_LEN, 0x00, AZ_IOT_HUB_ZONE_IDX);
-        if (ret < 0)
-        {
-            LogError("Unable to get the azure iot connection string from EEPROM. Please set the value in configuration mode.");
-            return false;
-        }
-        else if (ret == 0)
-        {
-            LogError("The connection string is empty.\r\nPlease set the value in configuration mode.");
-            return false;
-        }
-
-        iothub_hostname = GetHostNameFromConnectionString((char *)connString);
+        iothub_hostname = GetHostNameFromConnectionString(IoTHubConnectionString);
 
         // Create the IoTHub client
-        if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString((char *)connString, MQTT_Protocol)) == NULL)
+        if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(IoTHubConnectionString, MQTT_Protocol)) == NULL)
         {
             LogTrace("Create", "IoT hub establish failed");
             return false;
