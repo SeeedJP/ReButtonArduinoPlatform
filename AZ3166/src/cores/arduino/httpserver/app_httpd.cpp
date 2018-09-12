@@ -30,6 +30,7 @@
  ******************************************************************************
  */
 
+#include "Arduino.h"
 #include "EEPROMInterface.h"
 #include <httpd.h>
 #include "mico.h"
@@ -37,6 +38,7 @@
 #include "OledDisplay.h"
 #include "EMW10xxInterface.h"
 #include "SystemVariables.h"
+#include "parson.h"
 
 #define app_httpd_log(...)
 
@@ -334,10 +336,447 @@ exit:
   return err;
 }
 
+//
+// Placeholder to get/set everything at once.
+//
+int rest_get_config(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+  int err = kNoErr;
+  return err;
+}
+
+int rest_post_config(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+  OSStatus err = kNoErr;
+  return err;  
+}
+
+/*
+* REST API for IoT Hub
+*/
+static char *GetHostNameFromConnectionString(char *connectionString)
+{
+    if (connectionString == NULL)
+    {
+        return NULL;
+    }
+    int start = 0;
+    int cur = 0;
+    bool find = false;
+    while (connectionString[cur] > 0)
+    {
+        if (connectionString[cur] == '=')
+        {
+            // Check the key
+            if (memcmp(&connectionString[start], "HostName", 8) == 0)
+            {
+                // This is the host name
+                find = true;
+            }
+            start = ++cur;
+            // Value
+            while (connectionString[cur] > 0)
+            {
+                if (connectionString[cur] == ';')
+                {
+                    break;
+                }
+                cur++;
+            }
+            if (find && cur - start > 0)
+            {
+                char *hostname = (char *)malloc(cur - start + 1);
+                memcpy(hostname, &connectionString[start], cur - start);
+                hostname[cur - start] = 0;
+                return hostname;
+            }
+            start = cur + 1;
+        }
+        cur++;
+    }
+    return NULL;
+}
+
+static char *GetDeviceNameFromConnectionString(char *connectionString)
+{
+    if (connectionString == NULL)
+    {
+        return NULL;
+    }
+    int start = 0;
+    int cur = 0;
+    bool find = false;
+    while (connectionString[cur] > 0)
+    {
+        if (connectionString[cur] == '=')
+        {
+            // Check the key
+            if (memcmp(&connectionString[start], "DeviceId", 8) == 0)
+            {
+                // This is the device id
+                find = true;
+            }
+            start = ++cur;
+            // Value
+            while (connectionString[cur] > 0)
+            {
+                if (connectionString[cur] == ';')
+                {
+                    break;
+                }
+                cur++;
+            }
+            if (find && cur - start > 0)
+            {
+                char *deviceName = (char *)malloc(cur - start + 1);
+                memcpy(deviceName, &connectionString[start], cur - start);
+                deviceName[cur - start] = 0;
+                return deviceName;
+            }
+            start = cur + 1;
+        }
+        cur++;
+    }
+    return NULL;
+}
+
+int rest_get_iothub(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+  EEPROMInterface eeprom;
+  JSON_Value *root_value = json_value_init_object();
+  JSON_Object *root_object = json_value_get_object(root_value);
+  char *serialized_string = NULL;
+  char *connString[AZ_IOT_HUB_MAX_LEN + 1] = { '\0' };
+  int err = kNoErr;
+
+  int ret = eeprom.read((uint8_t*)connString, AZ_IOT_HUB_MAX_LEN, 0x00, AZ_IOT_HUB_ZONE_IDX);
+
+  if (ret < 0)
+  {
+      Serial.println("Unable to get the azure iot connection string from EEPROM. Please set the value in configuration mode.");
+      return kGeneralErr;
+  }
+
+  char *iothub_hostname = GetHostNameFromConnectionString((char *)connString);
+  char *iothub_deviceid = GetDeviceNameFromConnectionString((char *)connString);
+
+  json_object_set_string(root_object, "iothub", iothub_hostname);
+  json_object_set_string(root_object, "iotdevicename", iothub_deviceid);
+  json_object_set_string(root_object, "iotdevicesecret", (char *)connString);
+  serialized_string = json_serialize_to_string_pretty(root_value);
+  puts(serialized_string);
+
+  int json_length = strlen(serialized_string);
+    
+  err = httpd_send_all_header(req, HTTP_RES_200, json_length, HTTP_CONTENT_JSON_STR);
+  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http headers.") );
+
+  err = httpd_send_body(req->sock, (const unsigned char*)serialized_string, json_length);
+  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http body.") );
+
+exit:
+  if (serialized_string)
+  {
+    json_free_serialized_string(serialized_string);
+    json_value_free(root_value);
+  }
+
+  if (iothub_hostname)
+  {
+    free(iothub_hostname);
+  }
+
+  if (iothub_deviceid)
+  {
+    free(iothub_deviceid);
+  }
+  return err;
+}
+
+int rest_post_iothub(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+
+  EEPROMInterface eeprom;
+  OSStatus err = kNoErr;
+  int buf_size = 512;
+  char *buf;
+
+  buf = (char *)malloc(buf_size);
+  err = httpd_get_data(req, buf, buf_size);
+  app_httpd_log("httpd_get_data return value: %d", err);
+  require_noerr( err, Save_Out );
+  
+  if (strstr(req->content_type, HTTP_CONTENT_JSON_STR) != NULL)
+  {
+    JSON_Value *root_value = NULL;
+    root_value = json_parse_string(buf);
+    JSON_Object *root_object;
+
+    if (json_value_get_type(root_value) == JSONObject)
+    {
+        root_object = json_value_get_object(root_value);
+        const char *strConnString = json_object_get_string(root_object, "connectionstring");
+
+        err = write_eeprom((char *)strConnString, AZ_IOT_HUB_ZONE_IDX);
+
+        if (err != 0)
+        {
+          return false;
+        }
+
+        Serial.println(strConnString);
+
+        if(root_value)
+        {
+          json_value_free(root_value);
+        }
+    }
+  }
+
+Save_Out:
+
+  err = httpd_send_all_header(req, HTTP_RES_200, 0, HTTP_CONTENT_JSON_STR);
+
+exit:
+  return err;  
+}
+
+/*
+* REST API for WiFi
+*/
+
+int rest_get_wifi(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+
+  EEPROMInterface eeprom;
+  char ssid[WIFI_SSID_MAX_LEN + 1] = { 0 };
+  char pwd[WIFI_PWD_MAX_LEN + 1] = { 0 };
+
+  int ret = eeprom.read((uint8_t*)ssid, WIFI_SSID_MAX_LEN, 0x00, WIFI_SSID_ZONE_IDX);
+
+  if (ret < 0)
+  {
+      Serial.print("ERROR: Failed to get the Wi-Fi SSID from EEPROM.\r\n");
+      return false;
+  }
+
+  ret = eeprom.read((uint8_t*)pwd, WIFI_PWD_MAX_LEN, 0x00, WIFI_PWD_ZONE_IDX);
+  if (ret < 0)
+  {
+      Serial.print("ERROR: Failed to get the Wi-Fi password from EEPROM.\r\n");
+      return false;
+  }
+
+  JSON_Value *root_value = json_value_init_object();
+  JSON_Object *root_object = json_value_get_object(root_value);
+  char *serialized_string = NULL;
+
+  json_object_set_string(root_object, "ssid", ssid);
+  json_object_set_string(root_object, "password", pwd);
+  serialized_string = json_serialize_to_string_pretty(root_value);
+  puts(serialized_string);
+
+  int json_length = strlen(serialized_string);
+  int err = kNoErr;
+    
+  err = httpd_send_all_header(req, HTTP_RES_200, json_length, HTTP_CONTENT_JSON_STR);
+  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http headers.") );
+
+  err = httpd_send_body(req->sock, (const unsigned char*)serialized_string, json_length);
+  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http body.") );
+
+exit:
+  if (serialized_string)
+  {
+    json_free_serialized_string(serialized_string);
+    json_value_free(root_value);
+  }
+  return err;
+}
+
+int rest_post_wifi(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+  OSStatus err = kNoErr;
+  int buf_size = 512;
+  char *buf;
+
+  buf = (char *)malloc(buf_size);
+  err = httpd_get_data(req, buf, buf_size);
+  app_httpd_log("httpd_get_data return value: %d", err);
+  require_noerr( err, Save_Out );
+  
+  if (strstr(req->content_type, HTTP_CONTENT_JSON_STR) != NULL)
+  {
+    JSON_Value *root_value = NULL;
+    root_value = json_parse_string(buf);
+    JSON_Object *root_object;
+
+    if (json_value_get_type(root_value) == JSONObject)
+    {
+      root_object = json_value_get_object(root_value);
+      const char *strSSID = json_object_get_string(root_object, "ssid");
+      const char *strPASS = json_object_get_string(root_object, "password");
+      
+      err = write_eeprom((char *)strSSID, WIFI_SSID_ZONE_IDX);
+      if (err != 0)
+      {
+        return false;
+      }
+      err = write_eeprom((char *)strPASS, WIFI_PWD_ZONE_IDX);
+      if (err != 0)
+      {
+        return false;
+      }
+
+      if(root_value)
+      {
+        json_value_free(root_value);
+      }
+    }
+  }
+
+Save_Out:
+
+  err = httpd_send_all_header(req, HTTP_RES_200, 0, HTTP_CONTENT_JSON_STR);
+
+exit:
+  return err;  
+}
+
+/*
+* REST API for timeserver
+*/
+int rest_get_timeserver(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+  JSON_Value *root_value = json_value_init_object();
+  JSON_Object *root_object = json_value_get_object(root_value);
+  char *serialized_string = NULL;
+  //
+  // ToDo: Read Time Server Setting from EEPROM
+  //
+  json_object_set_string(root_object, "timeserver", "MyTimeServer");
+  serialized_string = json_serialize_to_string_pretty(root_value);
+  puts(serialized_string);
+
+  int json_length = strlen(serialized_string);
+  int err = kNoErr;
+    
+  err = httpd_send_all_header(req, HTTP_RES_200, json_length, HTTP_CONTENT_JSON_STR);
+  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http headers.") );
+
+  err = httpd_send_body(req->sock, (const unsigned char*)serialized_string, json_length);
+  require_noerr_action( err, exit, app_httpd_log("ERROR: Unable to send http body.") );
+
+exit:
+  if (serialized_string)
+  {
+    json_free_serialized_string(serialized_string);
+    json_value_free(root_value);
+  }
+  return err;
+}
+
+int rest_post_timeserver(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+  OSStatus err = kNoErr;
+  int buf_size = 512;
+  char *buf;
+
+  buf = (char *)malloc(buf_size);
+  err = httpd_get_data(req, buf, buf_size);
+  app_httpd_log("httpd_get_data return value: %d", err);
+  require_noerr( err, Save_Out );
+  
+  if (strstr(req->content_type, HTTP_CONTENT_JSON_STR) != NULL)
+  {
+    //
+    // ToDo : Save time server to EEPROM
+    //
+    JSON_Value *root_value = NULL;
+    root_value = json_parse_string(buf);
+    JSON_Object *root_object;
+
+    if (json_value_get_type(root_value) == JSONObject)
+    {
+      root_object = json_value_get_object(root_value);
+      const char *strTimeServer = json_object_get_string(root_object, "timeserver");
+
+      Serial.println(strTimeServer);
+
+      if(root_value)
+      {
+        json_value_free(root_value);
+      }
+    }
+  }
+
+Save_Out:
+
+  err = httpd_send_all_header(req, HTTP_RES_200, 0, HTTP_CONTENT_JSON_STR);
+
+exit:
+  return err;  
+}
+
+int rest_post_shutdown(httpd_request_t *req)
+{
+  Serial.println(__FUNCTION__);
+  OSStatus err = kNoErr;
+  int buf_size = 512;
+  char *buf;
+
+  buf = (char *)malloc(buf_size);
+  err = httpd_get_data(req, buf, buf_size);
+  app_httpd_log("httpd_get_data return value: %d", err);
+  require_noerr( err, Save_Out );
+  
+  if (strstr(req->content_type, HTTP_CONTENT_JSON_STR) != NULL)
+  {
+    JSON_Value *root_value = NULL;
+    root_value = json_parse_string(buf);
+    JSON_Object *root_object;
+
+    if (json_value_get_type(root_value) == JSONObject)
+    {
+      root_object = json_value_get_object(root_value);
+      double iDelay = json_object_get_number(root_object, "shutdowndelayinms");
+
+      if(root_value)
+      {
+        json_value_free(root_value);
+      }
+
+      delay(iDelay);
+      mico_system_reboot();
+    }
+  }
+
+Save_Out:
+
+  err = httpd_send_all_header(req, HTTP_RES_200, 0, HTTP_CONTENT_JSON_STR);
+
+exit:
+  return err;  
+}
+
+
 struct httpd_wsgi_call g_app_handlers[] = {
   {"/", HTTPD_HDR_DEFORT, 0, web_send_wifisetting_page, NULL, NULL, NULL},
   {"/result", HTTPD_HDR_DEFORT, 0, NULL, web_send_wifisetting_result_page, NULL, NULL},
   {"/setting", HTTPD_HDR_DEFORT, 0, web_send_wifisetting_page, NULL, NULL, NULL},
+  {"/config", HTTPD_HDR_DEFORT, 0, rest_get_config, rest_post_config, NULL, NULL},
+  {"/config/iothub", HTTPD_HDR_DEFORT, 0, rest_get_iothub, rest_post_iothub, NULL, NULL},
+  {"/config/wifi", HTTPD_HDR_DEFORT, 0, rest_get_wifi, rest_post_wifi, NULL, NULL},
+  {"/config/timeserver", HTTPD_HDR_DEFORT, 0, rest_get_timeserver, rest_post_timeserver, NULL, NULL},
+  {"/device/shutdown", HTTPD_HDR_DEFORT, 0, NULL, rest_post_shutdown, NULL, NULL},
 };
 
 int g_app_handlers_no = sizeof(g_app_handlers)/sizeof(struct httpd_wsgi_call);
@@ -404,3 +843,4 @@ int app_httpd_stop()
 exit:
   return err;
 }
+
