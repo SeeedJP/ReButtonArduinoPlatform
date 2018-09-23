@@ -10,6 +10,7 @@
 extern "C"{
 #endif  // __cplusplus
 
+void SetNTPHost(const char* host);
 void SyncTime(void);
 
 #ifdef __cplusplus
