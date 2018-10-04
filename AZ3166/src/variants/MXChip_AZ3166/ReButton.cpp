@@ -10,6 +10,7 @@ private:
 	PwmOut _LedGreen;
 	PwmOut _LedBlue;
 	DigitalIn _Button;
+	DigitalIn _Jumper;
 	FlashStorage _Storage;
 	AnalogIn _PowerSupplyVolt;
 
@@ -17,6 +18,7 @@ public:
 	ReButtonImplement() : _PowerSupply(PWR_ENABLE),
 		_LedRed(LED_RED), _LedGreen(LED_GREEN), _LedBlue(LED_BLUE),
 		_Button(USER_BUTTON_A),
+		_Jumper(USER_BUTTON_B),
 		_Storage(FLASH_SECTOR_11, 0x080E0000, 128 * 1024),
 		_PowerSupplyVolt(PB_0)
 	{
@@ -57,6 +59,11 @@ public:
 		return _Button.read() ? false : true;
 	}
 
+	bool IsJumperShort()
+	{
+		return _Jumper.read() ? false : true;
+	}
+
 	void EraseConfig()
 	{
 		_Storage.Erase();
@@ -94,6 +101,11 @@ void ReButton::SetLed(float red, float green, float blue)
 bool ReButton::IsButtonPressed()
 {
 	return GetInstance()->IsButtonPressed();
+}
+
+bool ReButton::IsJumperShort()
+{
+	return GetInstance()->IsJumperShort();
 }
 
 void ReButton::EraseConfig()
