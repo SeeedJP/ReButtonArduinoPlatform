@@ -1,10 +1,10 @@
-# MXChip IoT platform.
+# Seeed ReButton Board
 # ------------------------------
 #
 # For more info:
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification
 
-name=MXChip IoT Developer Board
+name=Seeed ReButton Board
 version=1.0.0
 
 # STM compile variables
