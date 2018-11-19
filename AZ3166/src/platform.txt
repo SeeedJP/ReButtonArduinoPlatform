@@ -1,11 +1,11 @@
-# Seeed ReButton Board
+# Seeed ReButton
 # ------------------------------
 #
 # For more info:
 # https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification
 
-name=Seeed ReButton Board
-version=1.0.0
+name=SeeedJP ReButton
+version=0.1.0
 
 # STM compile variables
 # ----------------------

@@ -8,15 +8,15 @@
       "help": { "online": "http://www.seeed.co.jp" },
       "platforms": [
         {
-          "name": "SeeedJP MXCHIP Boards",
-          "architecture": "SeeedJP_MXCHIP",
+          "name": "SeeedJP ReButton",
+          "architecture": "SeeedJP_ReButton",
           "version": "0.1",
           "category": "Contributed",
-          "help": { "online": "https://github.com/SeeedJP/SeeedJP_MXCHIP" },
-          "archiveFileName": "SeeedJP_MXCHIP_0.1.zip",
-          "url": "http://www.seeed.co.jp/Packages_for_Arduino/SeeedJP_MXCHIP_0.1.zip",
-          "checksum": "MD5:e72f8ae19f9f2e24a38b621f92e41d66",
-          "size": "5403994",
+          "help": { "online": "https://github.com/SeeedJP/SeeedJP_ReButton" },
+          "archiveFileName": "SeeedJP_ReButton_0.1.zip",
+          "url": "http://www.seeed.co.jp/Packages_for_Arduino/SeeedJP_ReButton_0.1.zip",
+          "checksum": "SHA-256:6d509658af74ab30cb5cf2c7721ac4cd4ffd68c0da3fad327188b6ecc101953b",
+          "size": "5408713",
           "boards": [
             {
               "name": "Seeed ReButton"
