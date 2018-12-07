@@ -10,13 +10,13 @@
         {
           "name": "SeeedJP ReButton",
           "architecture": "SeeedJP_ReButton",
-          "version": "0.1",
+          "version": "1.0",
           "category": "Contributed",
           "help": { "online": "https://github.com/SeeedJP/SeeedJP_ReButton" },
-          "archiveFileName": "SeeedJP_ReButton_0.1.zip",
-          "url": "http://www.seeed.co.jp/Packages_for_Arduino/SeeedJP_ReButton_0.1.zip",
-          "checksum": "SHA-256:6d509658af74ab30cb5cf2c7721ac4cd4ffd68c0da3fad327188b6ecc101953b",
-          "size": "5408713",
+          "archiveFileName": "SeeedJP_ReButton_1.0.zip",
+          "url": "http://www.seeed.co.jp/Packages_for_Arduino/SeeedJP_ReButton_1.0.zip",
+          "checksum": "SHA-256:164b1ba7c055c30a95f5c6b4a06022c4b568c1c5d5940e875a733ae27f15050b",
+          "size": "5408712",
           "boards": [
             {
               "name": "Seeed ReButton"
