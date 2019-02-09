@@ -46,13 +46,13 @@ void DevKitMQTTClient_Event_AddProp(EVENT_INSTANCE *message, const char * key, c
 
 /**
 * @brief    Initialize a IoT Hub MQTT client for communication with an existing IoT hub.
-*           The connection string is load from the EEPROM.
+* @param    connString      IoT Hub connection string.
 * @param    hasDeviceTwin   Enable / disable device twin, default is disable.
 * @param    traceOn         Enable / disable IoT Hub trace, default is disable.
 *
 * @return   Return true if initialize successfully, or false if fails.
 */
-bool DevKitMQTTClient_Init(bool hasDeviceTwin = false, bool traceOn = false);
+bool DevKitMQTTClient_Init(const char* connString, bool hasDeviceTwin = false, bool traceOn = false);
 
 /**
 * @brief    This API sets a runtime option identified by parameter @p optionName
