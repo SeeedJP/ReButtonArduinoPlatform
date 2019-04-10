@@ -1,6 +1,6 @@
 # See: http://code.google.com/p/arduino/wiki/Platforms
 
-menu.upload_method=Upload method
+menu.upload_interface=Interface
 
 ################################################################################
 # Seeed_ReButton board
@@ -21,8 +21,12 @@ Seeed_ReButton.build.extra_flags=-mthumb -mfloat-abi=softfp -mfpu=fpv4-sp-d16
 
 #---------------------------- UPLOAD METHODS ---------------------------
 
-Seeed_ReButton.menu.upload_method.OpenOCDMethod=OpenOCD
-Seeed_ReButton.menu.upload_method.OpenOCDMethod.upload.protocol=
-Seeed_ReButton.menu.upload_method.OpenOCDMethod.upload.tool=openocd
+Seeed_ReButton.menu.upload_interface.0=CMSIS-DAP via OpenOCD
+Seeed_ReButton.menu.upload_interface.0.upload.tool=cmsisdap_openocd
+Seeed_ReButton.menu.upload_interface.0.upload.protocol=
+
+Seeed_ReButton.menu.upload_interface.1=J-Link via OpenOCD
+Seeed_ReButton.menu.upload_interface.1.upload.tool=jlink_openocd
+Seeed_ReButton.menu.upload_interface.1.upload.protocol=
 
 ################################################################################
