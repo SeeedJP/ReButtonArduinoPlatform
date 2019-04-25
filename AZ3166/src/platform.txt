@@ -91,19 +91,6 @@ recipe.size.regex.eeprom=^(?:\.eeprom)\s+([0-9]+).*
 # Uploader tool
 # -------------------
 
-# CMSIS-DAP via OpenOCD
-
-tools.cmsisdap_openocd.path.windows={runtime.tools.openocd.path}
-tools.cmsisdap_openocd.path.macosx={runtime.tools.openocd.path}/macosx
-tools.cmsisdap_openocd.path.linux={runtime.tools.openocd.path}/linux
-tools.cmsisdap_openocd.cmd.macosx=bin/openocd
-tools.cmsisdap_openocd.cmd.linux=bin/openocd
-tools.cmsisdap_openocd.cmd.windows=bin/openocd.exe
-
-tools.cmsisdap_openocd.upload.params.verbose=
-tools.cmsisdap_openocd.upload.params.quiet=
-tools.cmsisdap_openocd.upload.pattern="{path}/{cmd}" -f "interface/cmsis-dap.cfg" -c "transport select swd" -f "target/stm32f4x.cfg" -c "program {{{build.path}/{build.project_name}.bin}} verify reset 0x0800C000" -c "shutdown"
-
 # J-Link via OpenOCD
 
 tools.jlink_openocd.path.windows={runtime.tools.openocd.path}
@@ -116,3 +103,16 @@ tools.jlink_openocd.cmd.windows=bin/openocd.exe
 tools.jlink_openocd.upload.params.verbose=
 tools.jlink_openocd.upload.params.quiet=
 tools.jlink_openocd.upload.pattern="{path}/{cmd}" -f "interface/jlink.cfg" -c "transport select swd" -f "target/stm32f4x.cfg" -c "program {{{build.path}/{build.project_name}.bin}} verify reset 0x0800C000" -c "shutdown"
+
+# CMSIS-DAP via OpenOCD
+
+tools.cmsisdap_openocd.path.windows={runtime.tools.openocd.path}
+tools.cmsisdap_openocd.path.macosx={runtime.tools.openocd.path}/macosx
+tools.cmsisdap_openocd.path.linux={runtime.tools.openocd.path}/linux
+tools.cmsisdap_openocd.cmd.macosx=bin/openocd
+tools.cmsisdap_openocd.cmd.linux=bin/openocd
+tools.cmsisdap_openocd.cmd.windows=bin/openocd.exe
+
+tools.cmsisdap_openocd.upload.params.verbose=
+tools.cmsisdap_openocd.upload.params.quiet=
+tools.cmsisdap_openocd.upload.pattern="{path}/{cmd}" -f "interface/cmsis-dap.cfg" -c "transport select swd" -f "target/stm32f4x.cfg" -c "program {{{build.path}/{build.project_name}.bin}} verify reset 0x0800C000" -c "shutdown"
