@@ -31,11 +31,11 @@
 
 #include "mbed.h"
 
+#include "wiring_constants.h"
+
 #ifdef __cplusplus
 extern "C"{
 #endif // __cplusplus
-
-#include "wiring_constants.h"
 
 #define F_CPU SystemCoreClock //To be compatible with Arduino delay
 

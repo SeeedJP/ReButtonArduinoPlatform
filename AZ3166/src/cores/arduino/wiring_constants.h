@@ -19,11 +19,32 @@
 #ifndef _WIRING_CONSTANTS_
 #define _WIRING_CONSTANTS_
 
+#include <stdbool.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+#include <algorithm>
+using std::min;
+using std::max;
+#else // C
+#include <stdlib.h>
+#ifndef abs
+#define abs(x) ((x)>0?(x):-(x))
+#endif // abs
+
+#ifndef min
+#define min(a,b) ((a)<(b)?(a):(b))
+#endif // min
+
+#ifndef max
+#define max(a,b) ((a)>(b)?(a):(b))
+#endif // max
+
+#endif // __cplusplus
+
 #ifdef __cplusplus
 extern "C"{
 #endif // __cplusplus
-
-#include <stdbool.h>
 
 #define HIGH 0x1
 #define LOW  0x0
@@ -57,23 +78,9 @@ enum BitOrder {
 #define DEFAULT 1
 #define EXTERNAL 0
 
-// undefine stdlib's abs if encountered
-#ifdef abs
-#undef abs
-#endif // abs
-
-
-#ifndef _GLIBCXX_VECTOR
-// arduino is not compatible with std::vector
-#define min(a,b) ((a)<(b)?(a):(b))
-#define max(a,b) ((a)>(b)?(a):(b))
-#endif
-
 #define _min(a,b) ((a)<(b)?(a):(b)) 
 #define _max(a,b) ((a)>(b)?(a):(b))
 
-
-#define abs(x) ((x)>0?(x):-(x))
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 #define round(x)     ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
 #define radians(deg) ((deg)*DEG_TO_RAD)
