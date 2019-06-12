@@ -24,13 +24,9 @@ public:
 	{
 		_PowerSupply.write(1);	// Power ON.
 
-		PwmOut outRed(LED_RED);
-		PwmOut outGreen(LED_GREEN);
-		PwmOut outBlue(LED_BLUE);
-
-		outRed.period(0.001);
-		outGreen.period(0.001);
-		outBlue.period(0.001);
+		_LedRed.period(0.001);
+		_LedGreen.period(0.001);
+		_LedBlue.period(0.001);
 
 		_LedRed.write(1.0f);
 		_LedGreen.write(1.0f);
