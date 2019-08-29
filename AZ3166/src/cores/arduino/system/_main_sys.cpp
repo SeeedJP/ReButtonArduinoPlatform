@@ -129,7 +129,8 @@ int main(void)
 
 	__sys_setup();
 
-	GetBoardID();	// Take measures for "undefined reference to 'GetMACWithoutColon'"
+	GetBoardID();		// Take measures for "undefined reference to 'GetMACWithoutColon'"
+	getMajorVersion();	// Take measures for "undefined reference to 'getDevkitVersion'"
 
 	EnterUserMode();
 
