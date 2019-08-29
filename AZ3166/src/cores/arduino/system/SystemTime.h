@@ -10,11 +10,13 @@
 extern "C"{
 #endif  // __cplusplus
 
+void SetNTPHost(const char* host);
+
 /**
  * @brief    Provide a new Time Server list.
- * 
+ *
  * @param    tsList - Time Server string list, split by comma.
- * 
+ *
  * @return   0 upon success or other value upon failure.
 **/
 int SetTimeServer(const char * tsList);
@@ -26,7 +28,7 @@ void SyncTime(void);
 
 /**
  * @brief    Check whether the local time is synced up with Time Server.
- * 
+ *
  * @return   0 upon synced or other value upon sync failed.
 **/
 int IsTimeSynced(void);

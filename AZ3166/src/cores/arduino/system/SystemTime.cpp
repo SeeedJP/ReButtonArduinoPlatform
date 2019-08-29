@@ -46,6 +46,11 @@ char **splitString(const char * tsList)
     return ntpHosts;
 }
 
+void SetNTPHost(const char* host)
+{
+	SetTimeServer(host);
+}
+
 int SetTimeServer(const char * tsList)
 {
     if (tsList == NULL || tsList[0] == 0)
