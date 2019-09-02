@@ -290,7 +290,10 @@ bool __attribute__((section(".riot_fw"))) DevkitDPSClientStart(const char* globa
                 }
             }
 
-            (void)Prov_Device_LL_SetOption(handle, "logtrace", &g_trace_on);
+			if (g_auth_type == DPS_AUTH_X509_INDIVIDUAL || g_auth_type == DPS_AUTH_X509_GROUP)
+			{
+				(void)Prov_Device_LL_SetOption(handle, "logtrace", &g_trace_on);
+			}
 
 			if (provPayload != NULL && Prov_Device_LL_Set_Provisioning_Payload(handle, provPayload) != PROV_DEVICE_RESULT_OK)
 			{
