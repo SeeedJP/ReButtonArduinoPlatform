@@ -116,3 +116,16 @@ tools.cmsisdap_openocd.cmd.windows=bin/openocd.exe
 tools.cmsisdap_openocd.upload.params.verbose=
 tools.cmsisdap_openocd.upload.params.quiet=
 tools.cmsisdap_openocd.upload.pattern="{path}/{cmd}" -f "interface/cmsis-dap.cfg" -c "transport select swd" -f "target/stm32f4x.cfg" -c "program {{{build.path}/{build.project_name}.bin}} verify reset 0x0800C000" -c "shutdown"
+
+# ST-Link via OpenOCD
+
+tools.stlink_openocd.path.windows={runtime.tools.openocd.path}
+tools.stlink_openocd.path.macosx={runtime.tools.openocd.path}/macosx
+tools.stlink_openocd.path.linux={runtime.tools.openocd.path}/linux
+tools.stlink_openocd.cmd.macosx=bin/openocd
+tools.stlink_openocd.cmd.linux=bin/openocd
+tools.stlink_openocd.cmd.windows=bin/openocd.exe
+
+tools.stlink_openocd.upload.params.verbose=
+tools.stlink_openocd.upload.params.quiet=
+tools.stlink_openocd.upload.pattern="{path}/{cmd}" -f "interface/stlink-v2-1.cfg" -c 'transport select hla_swd' -f "target/stm32f4x.cfg" -c "program {{{build.path}/{build.project_name}.bin}} verify reset 0x800C000" -c "shutdown"

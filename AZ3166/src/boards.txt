@@ -29,4 +29,8 @@ Seeed_ReButton.menu.upload_interface.1=CMSIS-DAP via OpenOCD
 Seeed_ReButton.menu.upload_interface.1.upload.tool=cmsisdap_openocd
 Seeed_ReButton.menu.upload_interface.1.upload.protocol=
 
+Seeed_ReButton.menu.upload_interface.2=ST-Link via OpenOCD
+Seeed_ReButton.menu.upload_interface.2.upload.tool=stlink_openocd
+Seeed_ReButton.menu.upload_interface.2.upload.protocol=
+
 ################################################################################
