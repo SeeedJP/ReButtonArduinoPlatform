@@ -191,9 +191,6 @@ static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOT
     case IOTHUB_CLIENT_CONNECTION_EXPIRED_SAS_TOKEN:
         if (result == IOTHUB_CLIENT_CONNECTION_UNAUTHENTICATED)
         {
-            // turn off Azure led
-            DigitalOut LedAzure(LED_AZURE);
-            LedAzure = 0;
             resetClient = true;
             LogInfo(">>>Connection status: timeout");
         }
@@ -207,9 +204,6 @@ static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOT
     case IOTHUB_CLIENT_CONNECTION_NO_NETWORK:
         if (result == IOTHUB_CLIENT_CONNECTION_UNAUTHENTICATED)
         {
-            // Turn off Azure led
-            DigitalOut LedAzure(LED_AZURE);
-            LedAzure = 0;
             resetClient = true;
             LogInfo(">>>Connection status: disconnected");
         }
@@ -219,9 +213,6 @@ static void ConnectionStatusCallback(IOTHUB_CLIENT_CONNECTION_STATUS result, IOT
     case IOTHUB_CLIENT_CONNECTION_OK:
         if (result == IOTHUB_CLIENT_CONNECTION_AUTHENTICATED)
         {
-            // Turn on Azure led
-            DigitalOut LedAzure(LED_AZURE);
-            LedAzure = 1;
             clientConnected = true;
             LogInfo(">>>Connection status: connected");
 
