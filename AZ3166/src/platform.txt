@@ -93,9 +93,9 @@ recipe.size.regex.eeprom=^(?:\.eeprom)\s+([0-9]+).*
 
 # J-Link via OpenOCD
 
-tools.jlink_openocd.cmd.windows={runtime.tools.openocd-0.10.0-arduino13.path}/bin/openocd.exe
-tools.jlink_openocd.cmd.macosx={runtime.tools.openocd-0.10.0-arduino13.path}/bin/openocd
-tools.jlink_openocd.cmd.linux={runtime.tools.openocd-0.10.0-arduino13.path}/bin/openocd
+tools.jlink_openocd.cmd.windows={runtime.tools.openocd-0.11.0-1-xpack.path}/bin/openocd.exe
+tools.jlink_openocd.cmd.macosx={runtime.tools.openocd-0.11.0-1-xpack.path}/bin/openocd
+tools.jlink_openocd.cmd.linux={runtime.tools.openocd-0.11.0-1-xpack.path}/bin/openocd
 
 tools.jlink_openocd.upload.params.verbose=
 tools.jlink_openocd.upload.params.quiet=
@@ -103,9 +103,9 @@ tools.jlink_openocd.upload.pattern="{cmd}" -f "interface/jlink.cfg" -c "transpor
 
 # CMSIS-DAP via OpenOCD
 
-tools.cmsisdap_openocd.cmd.windows={runtime.tools.openocd-0.10.0-arduino13.path}/bin/openocd.exe
-tools.cmsisdap_openocd.cmd.macosx={runtime.tools.openocd-0.10.0-arduino13.path}/bin/openocd
-tools.cmsisdap_openocd.cmd.linux={runtime.tools.openocd-0.10.0-arduino13.path}/bin/openocd
+tools.cmsisdap_openocd.cmd.windows={runtime.tools.openocd-0.11.0-1-xpack.path}/bin/openocd.exe
+tools.cmsisdap_openocd.cmd.macosx={runtime.tools.openocd-0.11.0-1-xpack.path}/bin/openocd
+tools.cmsisdap_openocd.cmd.linux={runtime.tools.openocd-0.11.0-1-xpack.path}/bin/openocd
 
 tools.cmsisdap_openocd.upload.params.verbose=
 tools.cmsisdap_openocd.upload.params.quiet=
