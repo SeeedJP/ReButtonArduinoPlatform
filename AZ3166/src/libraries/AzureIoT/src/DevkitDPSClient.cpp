@@ -34,6 +34,9 @@ typedef struct IOTHUB_CLIENT_SAMPLE_INFO_TAG
     int stop_running;
 } IOTHUB_CLIENT_SAMPLE_INFO;
 
+// Format of custom DPS payload sent when registering a PnP device.
+static const char g_dps_PayloadFormatForModelId[] = "{\"modelId\":\"%s\"}";
+
 static CLIENT_SAMPLE_INFO user_ctx = { 0 };
 static DPS_AUTH_TYPE g_auth_type = DPS_AUTH_X509_INDIVIDUAL;
 bool is_iothub_from_dps = false;
@@ -197,10 +200,12 @@ char* DiceInit(char* udsString)
 
 bool __attribute__((section(".riot_fw"))) DevkitDPSClientStart(const char* global_prov_uri,
     const char* id_scope, const char* registration_id, char* udsString,
-    const char* proxy_address, int proxy_port)
+    const char* proxy_address, int proxy_port,
+    const char* model_id)
 {
     bool result = true;
-    
+    STRING_HANDLE modelIdPayload = NULL;
+
     if (global_prov_uri == NULL || id_scope == NULL)
     {
         LogError("invalid parameter global_prov_uri: %p id_scope: %p", global_prov_uri, id_scope);
@@ -271,7 +276,7 @@ bool __attribute__((section(".riot_fw"))) DevkitDPSClientStart(const char* globa
         
         PROV_DEVICE_LL_HANDLE handle = NULL;
 
-        if ((handle = Prov_Device_LL_Create(global_prov_uri, id_scope, Prov_Device_HTTP_Protocol)) == NULL)
+        if ((handle = Prov_Device_LL_Create(global_prov_uri, id_scope, Prov_Device_MQTT_Protocol)) == NULL)
         {
             LogError("failed calling Prov_Device_LL_Create");
             result = false;
@@ -290,10 +295,26 @@ bool __attribute__((section(".riot_fw"))) DevkitDPSClientStart(const char* globa
                 }
             }
 
-            (void)Prov_Device_LL_SetOption(handle, "logtrace", &g_trace_on);
-            if (Prov_Device_LL_SetOption(handle, "TrustedCerts", certificates) != PROV_DEVICE_RESULT_OK)
+            // TODO https://github.dev/Azure/azure-iot-sdk-c/blob/f3f3f91cc6b0c1adbee51d20cfa2fe17ce6e1748/iothub_client/samples/pnp/common/pnp_dps_ll.c
+
+            if (model_id != NULL && (modelIdPayload = STRING_construct_sprintf(g_dps_PayloadFormatForModelId, model_id)) == NULL)
+            {
+                LogError("Cannot allocate DPS payload for modelId.");
+                result = false;
+            }
+            else if (Prov_Device_LL_SetOption(handle, "logtrace", &g_trace_on) != PROV_DEVICE_RESULT_OK)
+            {
+                LogError("Failed to set option \"logtrace\"");
+                result = false;
+            }
+            else if (Prov_Device_LL_SetOption(handle, "TrustedCerts", certificates) != PROV_DEVICE_RESULT_OK)
             {
                 LogError("Failed to set option \"TrustedCerts\"");
+                result = false;
+            }
+            else if (modelIdPayload != NULL && Prov_Device_LL_Set_Provisioning_Payload(handle, STRING_c_str(modelIdPayload)) != PROV_DEVICE_RESULT_OK)
+            {
+                LogError("Failed setting provisioning data");
                 result = false;
             }
             else if (Prov_Device_LL_Register_Device(handle, register_device_callback, &user_ctx, registation_status_callback, &user_ctx) != PROV_DEVICE_RESULT_OK)
@@ -324,6 +345,9 @@ bool __attribute__((section(".riot_fw"))) DevkitDPSClientStart(const char* globa
             is_iothub_from_dps = true;
         }
     }
+
+    STRING_delete(modelIdPayload);
+
     return result;
 }
 
